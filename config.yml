@@ -1,0 +1,22 @@
+#机型 请查看 https://github.com/MoshiCoCo/Apple-Monitor/blob/main/docs/apple-device-codes.md
+
+iphone:
+  type: MTXG3CH/A
+
+address:
+  province: 广西壮族自治区
+  city: 南宁
+  area: 青秀区
+
+apple:
+  id: xx
+  pwd: xx
+
+info:
+  lastname: 张
+  firstname: 三
+  email: 123@123.com
+  phone: 13112345678
+  card: 1234
+
+

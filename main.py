@@ -1,5 +1,8 @@
+import json
 import time
+import urllib
 
+import requests
 import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -8,17 +11,14 @@ from selenium.webdriver.support.select import Select
 with open('config.yml', 'r') as file:
     prime_service = yaml.safe_load(file)
 
-print(prime_service)
 
-# Apple 15官网
-url = f"https://www.apple.com.cn/shop/buy-iphone/iphone-15/{prime_service['iphone']['type']}"
-
-driver = webdriver.Chrome()
-driver.get(url)
-driver.implicitly_wait(10)
+def loop_func(func, second):
+    while True:
+        func()
+        time.sleep(second)
 
 
-def pz():
+def pz(driver):
     # 4.4 你是否有智能手机要折抵 【此处我选择了-没有旧机折扣】
     element_old = driver.find_element(By.XPATH, '//*[@id="noTradeIn"]')
     driver.execute_script("arguments[0].click();", element_old)
@@ -39,7 +39,7 @@ def pz():
     driver.implicitly_wait(10)
 
 
-def add():
+def add(driver):
     # 5 页面跳转查看购物袋
     element_check = driver.find_element(By.XPATH,
                                         '//*[@value="proceed"]')
@@ -66,7 +66,7 @@ def add():
     driver.implicitly_wait(10)
 
 
-def login():
+def login(driver):
     element_username = driver.find_element(By.ID, 'signIn.customerLogin.appleId')
     element_username.send_keys(prime_service['apple']['id'])
     driver.implicitly_wait(10)
@@ -82,7 +82,7 @@ def login():
     driver.implicitly_wait(10)
 
 
-def other():
+def other(driver):
     # 自提
     element_want_order = driver.find_element(By.ID,
                                              'fulfillmentOptionButtonGroup1')
@@ -205,19 +205,40 @@ def other():
     driver.implicitly_wait(15)
 
 
+def checkStatus():
+    a = f'{prime_service["address"]["province"]} {prime_service["address"]["city"]} {prime_service["address"]["area"]}'
+
+    response = requests.get(
+        f"https://www.apple.com.cn/shop/fulfillment-messages?pl=true&mts.0=regular&parts.0={prime_service['iphone']['type']}&location={urllib.parse.quote(a)}")
+
+    store = json.loads(response.text).get('body').get('content').get('pickupMessage').get('stores')[0]
+
+    print(
+        f'门店: {store.get("storeName")}, 型号: {store.get("partsAvailability").get(prime_service["iphone"]["type"]).get("messageTypes").get("regular").get("storePickupProductTitle")}, 状态: {store.get("partsAvailability").get(prime_service["iphone"]["type"]).get("pickupSearchQuote")}')
+
+    return [store.get("storeName"),
+            store.get("partsAvailability").get(prime_service['iphone']['type']).get("messageTypes").get("regular").get(
+                "storePickupProductTitle"),
+            store.get("partsAvailability").get(prime_service['iphone']['type']).get("pickupSearchQuote")]
+
+
 def run():
-    pz()
+    c = checkStatus()
+    if c[2] != '暂无供应':
+        url = f"https://www.apple.com.cn/shop/buy-iphone/{prime_service['iphone']['standard']}/{prime_service['iphone']['type']}"
+        driver = webdriver.Chrome()
+        driver.get(url)
+        driver.implicitly_wait(10)
 
-    while url == driver.current_url:
-        pz()
+        pz(driver)
+        while url == driver.current_url:
+            pz(driver)
+        add(driver)
+        login(driver)
+        other(driver)
 
-    add()
-    login()
-    other()
-
-    time.sleep(100)
+        time.sleep(10)
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    run()
+    loop_func(run, 5)

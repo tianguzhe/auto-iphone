@@ -1,6 +1,7 @@
 #机型 请查看 https://github.com/MoshiCoCo/Apple-Monitor/blob/main/docs/apple-device-codes.md
 
 iphone:
+  standard: iphone-15
   type: MTXG3CH/A
 
 address:
@@ -18,5 +19,3 @@ info:
   email: 123@123.com
   phone: 13112345678
   card: 1234
-
-

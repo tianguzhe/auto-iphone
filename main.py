@@ -7,12 +7,16 @@ import yaml
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 with open('config.yml', 'r') as file:
     prime_service = yaml.safe_load(file)
 
 
 def loop_func(func, second):
+    requests.get(
+        f"https://api.day.app/{prime_service['push']['token']}/Apple%20%E8%87%AA%E5%8A%A8%E4%B8%8B%E5%8D%95/%E8%BF%9E%E9%80%9A%E6%80%A7%E6%B5%8B%E8%AF%95")
     while True:
         func()
         time.sleep(second)
@@ -101,20 +105,28 @@ def other(driver):
 
     # 8.3 点击广西壮族自治区
     element_province = driver.find_element(By.XPATH,
-                                           f'//button[contains(text(),{prime_service["address"]["province"]})]')
-    element_province.click()
+                                           f'//li[.//button[text()="{prime_service["address"]["province"]}"]]')
+    # element_province.click()
+    driver.execute_script("arguments[0].click();", element_province)
     driver.implicitly_wait(10)
+
+    time.sleep(2)
 
     # 8.4 点击南宁
     element_city = driver.find_element(By.XPATH,
-                                       f'//button[contains(text(),{prime_service["address"]["city"]})]')
-    element_city.click()
+                                       f'//li[.//button[text()="{prime_service["address"]["city"]}"]]')
+    # element_city.click()
+    driver.execute_script("arguments[0].click();", element_city)
     driver.implicitly_wait(10)
+
+    time.sleep(2)
 
     # 8.5 点击青秀区
     element_area = driver.find_element(By.XPATH,
-                                       f'//button[contains(text(),{prime_service["address"]["area"]})]')
-    element_area.click()
+                                       f'//li[.//button[text()="{prime_service["address"]["area"]}"]]')
+
+    # element_area.click()
+    driver.execute_script("arguments[0].click();", element_area)
     driver.implicitly_wait(20)
 
     # 8.6 选择取货零售店 【此处我选择了-Apple 武汉】
@@ -130,10 +142,19 @@ def other(driver):
     # driver.implicitly_wait(10)
 
     # 8.8 选择取货时间段 【此处我选择了-默认第一个时间段】
-    element_time_quantum = driver.find_element(By.ID,
-                                               'checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue')
-    Select(element_time_quantum).select_by_index(2)
-    driver.implicitly_wait(15)
+    # element_time_quantum = driver.find_element(By.ID,
+    #                                            'checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue')
+    # driver.implicitly_wait(15)
+    # Select(element_time_quantum).select_by_index(2)
+    # driver.implicitly_wait(15)
+    element_time_quantum = WebDriverWait(driver, 15).until(
+        EC.visibility_of_element_located(
+            (By.ID, 'checkout.fulfillment.pickupTab.pickup.timeSlot.dateTimeSlots.timeSlotValue'))
+    )
+
+    # 使用Select类进行选择
+    select = Select(element_time_quantum)
+    select.select_by_index(2)
 
     # 8.9 继续填写取货详情
     element_checkout = driver.find_element(By.ID,
@@ -196,13 +217,20 @@ def other(driver):
     element_orderPay = driver.find_element(By.ID,
                                            'rs-checkout-continue-button-bottom')
     element_orderPay.click()
-    driver.implicitly_wait(15)
+    driver.implicitly_wait(10)
 
     # 12 确认订单
-    element_endPay = driver.find_element(By.ID,
-                                         'rs-checkout-continue-button-bottom')
+    element_endPay = driver.find_element(By.XPATH, '//*[@data-autom="continue-button-label"]')
     element_endPay.click()
-    driver.implicitly_wait(15)
+    driver.implicitly_wait(10)
+
+    driver.switch_to.window(driver.window_handles[0])
+    print(driver.current_url)
+
+    # 12 最终订单
+    element_endPay = driver.find_element(By.XPATH, '//*[@data-autom="continue-button-label"]')
+    element_endPay.click()
+    driver.implicitly_wait(10)
 
 
 def checkStatus():
@@ -225,6 +253,12 @@ def checkStatus():
 def run():
     c = checkStatus()
     if c[2] != '暂无供应':
+
+        bc = urllib.parse.quote('抢到了,快去支付吧!!!')
+
+        requests.get(
+            f"https://api.day.app/{prime_service['push']['token']}/Apple%20%E8%87%AA%E5%8A%A8%E4%B8%8B%E5%8D%95/{bc}")
+
         url = f"https://www.apple.com.cn/shop/buy-iphone/{prime_service['iphone']['standard']}/{prime_service['iphone']['type']}"
         driver = webdriver.Chrome()
         driver.get(url)

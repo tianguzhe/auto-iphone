@@ -13,9 +13,13 @@ apple:
   id: xx
   pwd: xx
 
+push:
+  token: 8mLCrjWk6rK111
+
 info:
   lastname: 张
   firstname: 三
   email: 123@123.com
   phone: 13112345678
+  # 身份证后四位
   card: 1234

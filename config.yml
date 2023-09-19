@@ -1,8 +1,8 @@
 #机型 请查看 https://github.com/MoshiCoCo/Apple-Monitor/blob/main/docs/apple-device-codes.md
 
 iphone:
-  standard: iphone-15
-  type: MTXG3CH/A
+  standard: [ iphone-15, iphone-15-pro ]
+  type: [ MTXG3CH/A, MTQA3CH/A ]
 
 address:
   province: 广西壮族自治区

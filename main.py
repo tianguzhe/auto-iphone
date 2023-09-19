@@ -233,45 +233,52 @@ def other(driver):
     driver.implicitly_wait(10)
 
 
-def checkStatus():
+def checkStatus(photoType):
     a = f'{prime_service["address"]["province"]} {prime_service["address"]["city"]} {prime_service["address"]["area"]}'
 
     response = requests.get(
-        f"https://www.apple.com.cn/shop/fulfillment-messages?pl=true&mts.0=regular&parts.0={prime_service['iphone']['type']}&location={urllib.parse.quote(a)}")
+        f"https://www.apple.com.cn/shop/fulfillment-messages?pl=true&mts.0=regular&parts.0={photoType}&location={urllib.parse.quote(a)}")
 
     store = json.loads(response.text).get('body').get('content').get('pickupMessage').get('stores')[0]
 
     print(
-        f'门店: {store.get("storeName")}, 型号: {store.get("partsAvailability").get(prime_service["iphone"]["type"]).get("messageTypes").get("regular").get("storePickupProductTitle")}, 状态: {store.get("partsAvailability").get(prime_service["iphone"]["type"]).get("pickupSearchQuote")}')
+        f'门店: {store.get("storeName")}, 型号: {store.get("partsAvailability").get(photoType).get("messageTypes").get("regular").get("storePickupProductTitle")}, 状态: {store.get("partsAvailability").get(photoType).get("pickupSearchQuote")}')
 
     return [store.get("storeName"),
-            store.get("partsAvailability").get(prime_service['iphone']['type']).get("messageTypes").get("regular").get(
+            store.get("partsAvailability").get(photoType).get("messageTypes").get("regular").get(
                 "storePickupProductTitle"),
-            store.get("partsAvailability").get(prime_service['iphone']['type']).get("pickupSearchQuote")]
+            store.get("partsAvailability").get(photoType).get("pickupSearchQuote")]
 
 
 def run():
-    c = checkStatus()
-    if c[2] != '暂无供应':
+    for i in range(0, len(prime_service['iphone']['type'])):
 
-        bc = urllib.parse.quote('抢到了,快去支付吧!!!')
+        # 机型
+        aca = prime_service['iphone']['standard'][i]
+        # 颜色/内存
+        acb = prime_service['iphone']['type'][i]
 
-        requests.get(
-            f"https://api.day.app/{prime_service['push']['token']}/Apple%20%E8%87%AA%E5%8A%A8%E4%B8%8B%E5%8D%95/{bc}")
+        c = checkStatus(acb)
+        if c[2] != '暂无供应':
 
-        url = f"https://www.apple.com.cn/shop/buy-iphone/{prime_service['iphone']['standard']}/{prime_service['iphone']['type']}"
-        driver = webdriver.Chrome()
-        driver.get(url)
-        driver.implicitly_wait(10)
+            bc = urllib.parse.quote('抢到了,快去支付吧!!!')
 
-        pz(driver)
-        while url == driver.current_url:
+            requests.get(
+                f"https://api.day.app/{prime_service['push']['token']}/Apple%20%E8%87%AA%E5%8A%A8%E4%B8%8B%E5%8D%95/{bc}")
+
+            url = f"https://www.apple.com.cn/shop/buy-iphone/{aca}/{acb}"
+            driver = webdriver.Chrome()
+            driver.get(url)
+            driver.implicitly_wait(10)
+
             pz(driver)
-        add(driver)
-        login(driver)
-        other(driver)
+            while url == driver.current_url:
+                pz(driver)
+            add(driver)
+            login(driver)
+            other(driver)
 
-        time.sleep(10)
+            time.sleep(10)
 
 
 if __name__ == '__main__':
